@@ -1057,17 +1057,27 @@ jasmine.Block = function(env, func, spec) {
 };
 
 jasmine.Block.prototype.execute = function(onComplete) {
-  if (!jasmine.CATCH_EXCEPTIONS) {
-    this.func.apply(this.spec);
-  }
-  else {
-    try {
+  if (this.func.length === 0) {
+    if (!jasmine.CATCH_EXCEPTIONS) {
       this.func.apply(this.spec);
-    } catch (e) {
-      this.spec.fail(e);
     }
+    else {
+      try {
+        this.func.apply(this.spec);
+      } catch (e) {
+        this.spec.fail(e);
+      }
+    }
+    onComplete();
+  } else {
+    var spec = this.spec;
+    this.func.call(spec, function(err) {
+      if (err && jasmine.CATCH_EXCEPTIONS) {
+        spec.fail(err);
+      }
+      onComplete();
+    });
   }
-  onComplete();
 };
 /** JavaScript API reporter.
  *
